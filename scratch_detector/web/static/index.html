@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VISION_TILE_CORE | Industrial AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .dot-grid {
+    background-image: radial-gradient(circle, #45464d 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .blueprint-line {
+    background-image: linear-gradient(to right, #334155 1px, transparent 1px),
+                      linear-gradient(to bottom, #334155 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  @keyframes scan {
+    0%   { top: 0%;   opacity: 0; }
+    5%   { opacity: 1; }
+    95%  { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .animate-spin { animation: spin 1s linear infinite; }
+  @keyframes pulse-bar {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.5; }
+  }
+</style>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "tertiary": "#ffb690",
+          "inverse-surface": "#d4e4fa",
+          "outline": "#909097",
+          "primary-fixed": "#dae2fd",
+          "surface-variant": "#273647",
+          "on-surface-variant": "#c6c6cd",
+          "on-primary-container": "#798098",
+          "primary-container": "#0f172a",
+          "on-secondary": "#233144",
+          "error": "#ffb4ab",
+          "surface": "#051424",
+          "surface-container-highest": "#273647",
+          "surface-container-low": "#0d1c2d",
+          "secondary": "#b9c7e0",
+          "secondary-container": "#3c4a5e",
+          "error-container": "#93000a",
+          "background": "#051424",
+          "surface-container": "#122131",
+          "on-surface": "#d4e4fa",
+          "outline-variant": "#45464d",
+          "on-primary": "#283044",
+          "surface-bright": "#2c3a4c",
+          "on-background": "#d4e4fa",
+          "on-secondary-container": "#abb9d2",
+          "surface-container-lowest": "#010f1f",
+          "on-tertiary": "#552100",
+          "primary": "#bec6e0",
+          "surface-container-high": "#1c2b3c",
+          "on-error": "#690005",
+          "surface-dim": "#051424",
+          "tertiary-container": "#2d0e00",
+        },
+        borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+        spacing: {
+          "margin-mobile": "16px", "container-max": "1440px",
+          "gutter": "24px", "unit": "4px", "margin-desktop": "32px"
+        },
+        fontFamily: {
+          "headline-md": ["Inter"], "body-lg": ["Inter"], "headline-xl": ["Inter"],
+          "label-caps": ["Inter"], "headline-lg": ["Inter"], "body-md": ["Inter"],
+          "label-mono": ["JetBrains Mono"]
+        },
+        fontSize: {
+          "headline-md": ["20px", { lineHeight: "28px", fontWeight: "600" }],
+          "body-lg": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+          "headline-xl": ["48px", { lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "700" }],
+          "label-caps": ["11px", { lineHeight: "16px", letterSpacing: "0.1em", fontWeight: "700" }],
+          "headline-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.01em", fontWeight: "600" }],
+          "body-md": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+          "label-mono": ["12px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "500" }]
+        }
+      }
+    }
+  }
+</script>
+</head>
+<body class="bg-surface text-on-surface font-body-md overflow-x-hidden">
+
+<!-- ── Header ───────────────────────────────────────────────────────────────── -->
+<header class="bg-surface border-b border-outline-variant w-full h-16 sticky top-0 flex justify-between items-center px-margin-desktop z-50">
+  <div class="flex items-center gap-8">
+    <span class="font-headline-md text-headline-md font-bold tracking-tight">VISION_TILE_CORE</span>
+    <nav class="hidden md:flex gap-6 items-center h-full">
+      <a class="text-tertiary font-body-md border-b-2 border-tertiary pb-0.5 cursor-pointer">Home</a>
+      <a onclick="document.getElementById('file-input').click()" class="text-on-surface-variant font-body-md hover:bg-surface-container-high transition-colors px-3 py-2 cursor-pointer active:scale-95">Live Detect</a>
+      <a class="text-on-surface-variant font-body-md hover:bg-surface-container-high transition-colors px-3 py-2 cursor-pointer active:scale-95">Docs</a>
+    </nav>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="hidden lg:flex items-center bg-surface-container px-3 py-1.5 border border-outline-variant rounded">
+      <span class="material-symbols-outlined text-on-surface-variant text-[18px]">search</span>
+      <input class="bg-transparent border-none focus:ring-0 text-label-mono p-0 ml-2 w-48 text-on-surface" placeholder="Search parameters..." type="text"/>
+    </div>
+    <span class="material-symbols-outlined text-on-surface cursor-pointer p-2 hover:bg-surface-container-high rounded transition-colors">settings</span>
+    <span class="material-symbols-outlined text-on-surface cursor-pointer p-2 hover:bg-surface-container-high rounded transition-colors">notifications</span>
+    <span class="material-symbols-outlined text-tertiary cursor-pointer p-2 hover:bg-surface-container-high rounded transition-colors">account_circle</span>
+  </div>
+</header>
+
+<!-- ── Hero ─────────────────────────────────────────────────────────────────── -->
+<main class="flex flex-col min-h-screen">
+<section class="relative min-h-[921px] flex flex-col items-center justify-center pt-20 pb-32 px-margin-desktop overflow-hidden dot-grid">
+  <div class="absolute inset-0 bg-gradient-to-b from-surface/50 via-surface/80 to-surface pointer-events-none"></div>
+
+  <div class="relative z-10 max-w-container-max w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+
+    <!-- Left: text + controls -->
+    <div class="lg:col-span-5 space-y-8">
+      <div class="inline-flex items-center gap-2 px-3 py-1 border border-tertiary/30 bg-tertiary/5 text-tertiary">
+        <span class="material-symbols-outlined text-[14px]">bolt</span>
+        <span class="font-label-caps text-label-caps uppercase">YOLOv8m-seg · Industrial Engine v1.0</span>
+      </div>
+
+      <h1 class="font-headline-xl text-headline-xl text-on-surface leading-none">
+        PRECISION<br/><span class="text-tertiary">DEFECT MAPPING</span>
+      </h1>
+
+      <p class="font-body-lg text-body-lg text-on-surface-variant max-w-md">
+        Detección autónoma de rayaduras y agujeros en baldosas cerámicas industriales.
+        Segmentación exacta de contornos con medidas reales en milímetros.
+      </p>
+
+      <!-- Settings row -->
+      <div class="space-y-4 pt-2">
+        <div class="flex flex-wrap items-center gap-4">
+          <div class="flex items-center gap-2 bg-surface-container border border-outline-variant px-3 py-2">
+            <span class="material-symbols-outlined text-tertiary text-[16px]">straighten</span>
+            <label class="font-label-mono text-label-mono text-on-surface-variant text-[11px] whitespace-nowrap">TAMAÑO BALDOSA (cm)</label>
+            <input id="tile-cm" type="number" min="10" max="200" placeholder="60"
+                   class="bg-transparent border-none focus:ring-0 text-on-surface font-label-mono text-label-mono w-14 p-0 text-center
+                          placeholder-on-surface-variant/40">
+          </div>
+          <div class="flex items-center gap-3 bg-surface-container border border-outline-variant px-3 py-2">
+            <label class="font-label-mono text-label-mono text-on-surface-variant text-[11px]">CONF</label>
+            <input type="range" id="conf-slider" min="10" max="80" value="25"
+                   class="accent-amber-400 w-24 cursor-pointer">
+            <span id="conf-val" class="font-label-mono text-label-mono text-tertiary text-[11px] w-8">0.25</span>
+          </div>
+        </div>
+        <p class="font-label-mono text-[10px] text-on-surface-variant/50">
+          Tamaño opcional — activa conversión a mm reales · Conf = umbral de detección
+        </p>
+      </div>
+
+      <!-- CTA buttons -->
+      <div class="flex flex-wrap gap-4 pt-2">
+        <button id="analyze-btn" onclick="handleAnalyzeClick()"
+                class="bg-tertiary text-on-tertiary font-label-caps text-label-caps px-8 py-4 transition-transform active:scale-95 hover:brightness-110 flex items-center gap-2">
+          <span class="material-symbols-outlined text-[18px]">biotech</span>
+          START ANALYSIS
+        </button>
+        <button onclick="document.getElementById('file-input').click()"
+                class="border border-outline-variant text-on-surface font-label-caps text-label-caps px-8 py-4 transition-colors hover:bg-surface-container-highest flex items-center gap-2">
+          <span class="material-symbols-outlined text-[18px]">upload_file</span>
+          SELECT IMAGE
+        </button>
+      </div>
+
+      <!-- Stats row -->
+      <div class="grid grid-cols-3 gap-6 pt-8 border-t border-outline-variant">
+        <div>
+          <span class="block font-label-mono text-label-mono text-tertiary">MODELO</span>
+          <span class="block font-headline-md text-headline-md text-on-surface">YOLOv8m</span>
+        </div>
+        <div>
+          <span class="block font-label-mono text-label-mono text-tertiary">mAP50</span>
+          <span class="block font-headline-md text-headline-md text-on-surface">80.6%</span>
+        </div>
+        <div>
+          <span class="block font-label-mono text-label-mono text-tertiary">CLASES</span>
+          <span class="block font-headline-md text-headline-md text-on-surface">Rayadura · Agujero</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: interactive drop zone -->
+    <div class="lg:col-span-7 relative">
+      <div id="drop-zone"
+           class="relative aspect-square w-full max-w-[600px] mx-auto border border-outline-variant bg-surface-container-low group cursor-crosshair transition-all"
+           ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)"
+           onclick="onDropZoneClick()">
+
+        <!-- Blueprint grid overlay -->
+        <div class="absolute inset-0 blueprint-line opacity-20 pointer-events-none"></div>
+
+        <!-- Tile preview image -->
+        <div class="absolute inset-4 overflow-hidden border border-outline-variant bg-surface-container">
+          <img id="tile-preview-img"
+               src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6EuVqqOeLLbzKCwfqzhYU6iUpPm2XkyfRcpQ-q3KZLCT6U0zYzujV6aFETj2qM4MhFaA8Q5Mi0dz6EoyiSwF-4yw7nqN1qaKxqTfZX2wZ5YB4ZjT30yP1gs8j51JODoSoCuOOXPugaCQPkJomY7nCATC3KI9qjHI5HwjG3VHK0_VovvmRsz8NGE5uhLVl74-1kRscO34ScKm8pOIvReQNEhpxdQ3CFLtDpLpyvnxtaxXB8FHIW3lvFr8nL4NipnP4xj2hva1hk7I"
+               alt="Tile preview"
+               class="w-full h-full object-cover opacity-60 mix-blend-luminosity transition-all duration-500"
+               id="preview-img"/>
+
+          <!-- Corner brackets -->
+          <div class="absolute inset-0 border-[2px] border-tertiary/20 pointer-events-none">
+            <div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-tertiary"></div>
+            <div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-tertiary"></div>
+            <div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-tertiary"></div>
+            <div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-tertiary"></div>
+            <!-- Scan bar -->
+            <div class="absolute top-0 left-0 w-full h-[2px] bg-tertiary shadow-[0_0_20px_rgba(255,182,144,0.8)] z-20" style="animation: scan 4s linear infinite"></div>
+          </div>
+        </div>
+
+        <!-- Status label top-right -->
+        <div class="absolute -top-4 -right-4 bg-surface-container-highest border border-outline-variant p-4 space-y-2">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-tertiary text-[16px]">biotech</span>
+            <span id="status-label" class="font-label-caps text-label-caps">READY TO SCAN</span>
+          </div>
+          <div id="status-sub" class="font-label-mono text-[10px] text-on-surface-variant">
+            DROP IMAGE OR CLICK TO SELECT<br/>
+            SUPPORTED: JPG · PNG · WEBP
+          </div>
+        </div>
+
+        <!-- Drag & drop instruction overlay (visible when no file) -->
+        <div id="drop-instruction"
+             class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div class="text-center p-8 border-2 border-dashed border-outline-variant/50 bg-surface/50 backdrop-blur-md">
+            <span class="material-symbols-outlined text-[48px] text-tertiary mb-2">upload_file</span>
+            <p id="drop-label" class="font-label-caps text-label-caps">DRAG TILE IMAGE HERE</p>
+            <p id="drop-sublabel" class="text-label-mono text-on-surface-variant mt-2">SUPPORTED: JPG · PNG · WEBP</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ──────────────────────────────────────────────────────────── -->
+<section class="py-24 bg-surface-container-lowest border-y border-outline-variant px-margin-desktop">
+  <div class="max-w-container-max mx-auto">
+    <div class="mb-16">
+      <span class="font-label-mono text-label-mono text-tertiary uppercase">Pipeline Architecture</span>
+      <h2 class="font-headline-lg text-headline-lg mt-2">SYSTEM WORKFLOW</h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+
+      <div class="group border border-outline-variant p-8 bg-surface-container hover:bg-surface-container-high transition-all">
+        <div class="flex items-center justify-between mb-8">
+          <span class="font-headline-md text-headline-md text-tertiary/20">01</span>
+          <span class="material-symbols-outlined text-[32px] text-tertiary">cloud_upload</span>
+        </div>
+        <h3 class="font-headline-md text-headline-md mb-4 uppercase">Upload</h3>
+        <p class="text-on-surface-variant font-body-md mb-6">
+          Sube una imagen de la baldosa en JPG, PNG o WEBP. El sistema acepta fotografías de cualquier resolución directamente desde cámara o sensor.
+        </p>
+        <div class="h-[200px] w-full overflow-hidden border border-outline-variant/30">
+          <img alt="Upload" class="w-full h-full object-cover grayscale opacity-40 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-500"
+               src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvcMmlYK2gwMvhM1gwE28pbBdLFSS-q-DWd2VyIs-kO_QaGdUaTo8GRiQaiqkwp2aF9YZqP3Ozsu64jcolmjTRylVDntTktWEwytkRQUcX1oPVOEwLKhzdi6fEQ3NC9mNB3_2Thqa2hQBeMwYtNaCMn2hKL985Ub4f64WTXWMU5PHprn0mkMKUy8QA6XcimNQDUQc77PxF8-DLX5CuFLSNjCHJEpbPlznFt-eKPYNcU8HyqPcljThaeK70Eh-aNqHEy7Zb1SdNd3k"/>
+        </div>
+      </div>
+
+      <div class="group border border-outline-variant p-8 bg-surface-container hover:bg-surface-container-high transition-all">
+        <div class="flex items-center justify-between mb-8">
+          <span class="font-headline-md text-headline-md text-tertiary/20">02</span>
+          <span class="material-symbols-outlined text-[32px] text-tertiary" style="font-variation-settings:'FILL' 1;">psychology</span>
+        </div>
+        <h3 class="font-headline-md text-headline-md mb-4 uppercase">AI Processing</h3>
+        <p class="text-on-surface-variant font-body-md mb-6">
+          YOLOv8m-seg (27M params) segmenta cada defecto al nivel de píxel con confianza configurable. Procesado en CPU o GPU.
+        </p>
+        <div class="h-[200px] w-full overflow-hidden border border-outline-variant/30 relative bg-surface-container-lowest">
+          <!-- Neural network SVG visualization -->
+          <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg" class="w-full h-full transition-all duration-500" style="opacity:0.35" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.35'">
+            <defs>
+              <radialGradient id="ng1" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#ffb690" stop-opacity="0.9"/>
+                <stop offset="100%" stop-color="#ffb690" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <rect width="400" height="200" fill="#051424"/>
+            <!-- connections layer 1→2 -->
+            <g stroke="#334155" stroke-width="0.6" opacity="0.7">
+              <line x1="60" y1="40"  x2="160" y2="30"/> <line x1="60" y1="40"  x2="160" y2="70"/>
+              <line x1="60" y1="40"  x2="160" y2="110"/><line x1="60" y1="40"  x2="160" y2="150"/>
+              <line x1="60" y1="100" x2="160" y2="30"/> <line x1="60" y1="100" x2="160" y2="70"/>
+              <line x1="60" y1="100" x2="160" y2="110"/><line x1="60" y1="100" x2="160" y2="150"/>
+              <line x1="60" y1="160" x2="160" y2="30"/> <line x1="60" y1="160" x2="160" y2="70"/>
+              <line x1="60" y1="160" x2="160" y2="110"/><line x1="60" y1="160" x2="160" y2="150"/>
+            </g>
+            <!-- connections layer 2→3 -->
+            <g stroke="#334155" stroke-width="0.6" opacity="0.7">
+              <line x1="160" y1="30"  x2="260" y2="50"/> <line x1="160" y1="30"  x2="260" y2="100"/>
+              <line x1="160" y1="30"  x2="260" y2="150"/><line x1="160" y1="70"  x2="260" y2="50"/>
+              <line x1="160" y1="70"  x2="260" y2="100"/><line x1="160" y1="70"  x2="260" y2="150"/>
+              <line x1="160" y1="110" x2="260" y2="50"/> <line x1="160" y1="110" x2="260" y2="100"/>
+              <line x1="160" y1="110" x2="260" y2="150"/><line x1="160" y1="150" x2="260" y2="50"/>
+              <line x1="160" y1="150" x2="260" y2="100"/><line x1="160" y1="150" x2="260" y2="150"/>
+            </g>
+            <!-- connections layer 3→4 -->
+            <g stroke="#ffb690" stroke-width="0.8" opacity="0.5">
+              <line x1="260" y1="50"  x2="350" y2="80"/>
+              <line x1="260" y1="50"  x2="350" y2="120"/>
+              <line x1="260" y1="100" x2="350" y2="80"/>
+              <line x1="260" y1="100" x2="350" y2="120"/>
+              <line x1="260" y1="150" x2="350" y2="80"/>
+              <line x1="260" y1="150" x2="350" y2="120"/>
+            </g>
+            <!-- Layer 1 nodes -->
+            <g fill="#273647" stroke="#45464d" stroke-width="1">
+              <circle cx="60" cy="40"  r="8"/><circle cx="60" cy="100" r="8"/><circle cx="60" cy="160" r="8"/>
+            </g>
+            <!-- Layer 2 nodes -->
+            <g fill="#1c2b3c" stroke="#45464d" stroke-width="1">
+              <circle cx="160" cy="30"  r="7"/><circle cx="160" cy="70"  r="7"/>
+              <circle cx="160" cy="110" r="7"/><circle cx="160" cy="150" r="7"/>
+            </g>
+            <!-- Layer 3 nodes (active – orange) -->
+            <g fill="#2d0e00" stroke="#ffb690" stroke-width="1.5">
+              <circle cx="260" cy="50"  r="9"/>
+              <circle cx="260" cy="100" r="9"/>
+              <circle cx="260" cy="150" r="9"/>
+            </g>
+            <circle cx="260" cy="100" r="4" fill="#ffb690" opacity="0.9"/>
+            <!-- Layer 4 output -->
+            <g fill="#2d0e00" stroke="#ffb690" stroke-width="2">
+              <circle cx="350" cy="80"  r="11"/>
+              <circle cx="350" cy="120" r="11"/>
+            </g>
+            <circle cx="350" cy="80"  r="5" fill="#ffb690"/>
+            <circle cx="350" cy="120" r="3" fill="#ffb690" opacity="0.5"/>
+            <!-- Labels -->
+            <text x="60"  y="185" text-anchor="middle" fill="#45464d" font-size="8" font-family="monospace">INPUT</text>
+            <text x="210" y="185" text-anchor="middle" fill="#45464d" font-size="8" font-family="monospace">HIDDEN × 2</text>
+            <text x="350" y="185" text-anchor="middle" fill="#ffb690" font-size="8" font-family="monospace">OUTPUT</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="group border border-outline-variant p-8 bg-surface-container hover:bg-surface-container-high transition-all">
+        <div class="flex items-center justify-between mb-8">
+          <span class="font-headline-md text-headline-md text-tertiary/20">03</span>
+          <span class="material-symbols-outlined text-[32px] text-tertiary">dashboard_customize</span>
+        </div>
+        <h3 class="font-headline-md text-headline-md mb-4 uppercase">Defect Mapping</h3>
+        <p class="text-on-surface-variant font-body-md mb-6">
+          Dashboard con imagen anotada, recortes de cada defecto, clasificación, longitud, grosor y área en mm² reales.
+        </p>
+        <div class="h-[200px] w-full overflow-hidden border border-outline-variant/30 relative bg-surface-container-lowest">
+          <!-- Defect heatmap / dashboard SVG visualization -->
+          <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg" class="w-full h-full transition-all duration-500" style="opacity:0.35" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.35'">
+            <rect width="400" height="200" fill="#051424"/>
+            <!-- Tile outline -->
+            <rect x="20" y="15" width="240" height="170" fill="#0d1c2d" stroke="#273647" stroke-width="1.5"/>
+            <!-- Heatmap grid cells (8×5) -->
+            <g opacity="0.6">
+              <!-- Row 1 -->
+              <rect x="22" y="17"  width="28" height="32" fill="#0d1c2d"/><rect x="52" y="17"  width="28" height="32" fill="#122131"/>
+              <rect x="82" y="17"  width="28" height="32" fill="#0d1c2d"/><rect x="112" y="17" width="28" height="32" fill="#0d1c2d"/>
+              <rect x="142" y="17" width="28" height="32" fill="#122131"/><rect x="172" y="17" width="28" height="32" fill="#0d1c2d"/>
+              <rect x="202" y="17" width="28" height="32" fill="#1c2b3c"/><rect x="232" y="17" width="26" height="32" fill="#0d1c2d"/>
+              <!-- Row 2 – scratch hotspot -->
+              <rect x="22" y="51"  width="28" height="32" fill="#1c2b3c"/><rect x="52" y="51"  width="28" height="32" fill="#2d1500" opacity="0.9"/>
+              <rect x="82" y="51"  width="28" height="32" fill="#3d1e00"/><rect x="112" y="51" width="28" height="32" fill="#4a2500"/>
+              <rect x="142" y="51" width="28" height="32" fill="#3d1e00"/><rect x="172" y="51" width="28" height="32" fill="#2d1500"/>
+              <rect x="202" y="51" width="28" height="32" fill="#1c2b3c"/><rect x="232" y="51" width="26" height="32" fill="#122131"/>
+              <!-- Row 3 – peak hotspot -->
+              <rect x="22" y="85"  width="28" height="32" fill="#122131"/><rect x="52" y="85"  width="28" height="32" fill="#3d1e00"/>
+              <rect x="82" y="85"  width="28" height="32" fill="#6e3300"/><rect x="112" y="85" width="28" height="32" fill="#9a4700"/>
+              <rect x="142" y="85" width="28" height="32" fill="#c45d00" opacity="0.85"/><rect x="172" y="85" width="28" height="32" fill="#6e3300"/>
+              <rect x="202" y="85" width="28" height="32" fill="#3d1e00"/><rect x="232" y="85" width="26" height="32" fill="#122131"/>
+              <!-- Row 4 -->
+              <rect x="22"  y="119" width="28" height="32" fill="#0d1c2d"/><rect x="52"  y="119" width="28" height="32" fill="#2d1500"/>
+              <rect x="82"  y="119" width="28" height="32" fill="#4a2500"/><rect x="112" y="119" width="28" height="32" fill="#3d1e00"/>
+              <rect x="142" y="119" width="28" height="32" fill="#2d1500"/><rect x="172" y="119" width="28" height="32" fill="#1c2b3c"/>
+              <rect x="202" y="119" width="28" height="32" fill="#122131"/><rect x="232" y="119" width="26" height="32" fill="#0d1c2d"/>
+              <!-- Row 5 -->
+              <rect x="22"  y="153" width="28" height="30" fill="#0d1c2d"/><rect x="52"  y="153" width="28" height="30" fill="#122131"/>
+              <rect x="82"  y="153" width="28" height="30" fill="#1c2b3c"/><rect x="112" y="153" width="28" height="30" fill="#0d1c2d"/>
+              <rect x="142" y="153" width="28" height="30" fill="#0d1c2d"/><rect x="172" y="153" width="28" height="30" fill="#122131"/>
+              <rect x="202" y="153" width="28" height="30" fill="#0d1c2d"/><rect x="232" y="153" width="26" height="30" fill="#0d1c2d"/>
+            </g>
+            <!-- Grid lines -->
+            <g stroke="#273647" stroke-width="0.4" opacity="0.8">
+              <line x1="50" y1="15" x2="50" y2="185"/> <line x1="80" y1="15" x2="80" y2="185"/>
+              <line x1="110" y1="15" x2="110" y2="185"/><line x1="140" y1="15" x2="140" y2="185"/>
+              <line x1="170" y1="15" x2="170" y2="185"/><line x1="200" y1="15" x2="200" y2="185"/>
+              <line x1="230" y1="15" x2="230" y2="185"/>
+              <line x1="20" y1="51"  x2="260" y2="51"/> <line x1="20" y1="85"  x2="260" y2="85"/>
+              <line x1="20" y1="119" x2="260" y2="119"/><line x1="20" y1="153" x2="260" y2="153"/>
+            </g>
+            <!-- Bounding box: scratch -->
+            <rect x="52" y="51" width="120" height="98" fill="none" stroke="#ffb690" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <rect x="52" y="51" width="60" height="8" fill="#ffb690"/>
+            <text x="55" y="58" fill="#552100" font-size="6.5" font-family="monospace" font-weight="bold">SCRATCH_01 · 94%</text>
+            <!-- Bounding box: hole -->
+            <rect x="200" y="85" width="30" height="32" fill="none" stroke="#bec6e0" stroke-width="1.2" stroke-dasharray="3,2"/>
+            <text x="202" y="83" fill="#bec6e0" font-size="6" font-family="monospace">HOLE · 87%</text>
+            <!-- Colorbar -->
+            <defs>
+              <linearGradient id="heatbar" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%"   stop-color="#0d1c2d"/>
+                <stop offset="50%"  stop-color="#6e3300"/>
+                <stop offset="100%" stop-color="#ffb690"/>
+              </linearGradient>
+            </defs>
+            <rect x="280" y="40" width="100" height="10" rx="2" fill="url(#heatbar)"/>
+            <text x="280" y="37" fill="#45464d" font-size="7" font-family="monospace">CONFIDENCE MAP</text>
+            <text x="280" y="60" fill="#45464d" font-size="6.5" font-family="monospace">LOW</text>
+            <text x="358" y="60" fill="#ffb690" font-size="6.5" font-family="monospace">HIGH</text>
+            <!-- Metric boxes -->
+            <rect x="280" y="75"  width="100" height="22" fill="#122131" stroke="#273647" stroke-width="0.8"/>
+            <rect x="280" y="101" width="100" height="22" fill="#122131" stroke="#273647" stroke-width="0.8"/>
+            <rect x="280" y="127" width="100" height="22" fill="#2d0e00" stroke="#ffb690" stroke-width="0.8"/>
+            <text x="285" y="86"  fill="#45464d" font-size="6.5" font-family="monospace">SCRATCHES</text>
+            <text x="355" y="86"  fill="#bec6e0" font-size="7"   font-family="monospace" text-anchor="end">04</text>
+            <text x="285" y="112" fill="#45464d" font-size="6.5" font-family="monospace">HOLES</text>
+            <text x="355" y="112" fill="#bec6e0" font-size="7"   font-family="monospace" text-anchor="end">05</text>
+            <text x="285" y="138" fill="#45464d" font-size="6.5" font-family="monospace">VERDICT</text>
+            <text x="355" y="138" fill="#ffb690" font-size="7"   font-family="monospace" text-anchor="end" font-weight="bold">DONE</text>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats ─────────────────────────────────────────────────────────────────── -->
+<section class="py-20 px-margin-desktop bg-surface">
+  <div class="max-w-container-max mx-auto flex flex-col md:flex-row items-center justify-between gap-12">
+    <div class="md:max-w-md">
+      <h2 class="font-headline-lg text-headline-lg mb-4">PIPELINE COMPLETO</h2>
+      <p class="text-on-surface-variant font-body-md">
+        Desde anotación manual en Label Studio hasta pseudo-labeling automático con el propio modelo,
+        entrenamiento en GPU Kaggle (150 epochs) e inferencia en tiempo real con medidas físicas calibradas.
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-12">
+      <div class="text-center">
+        <div class="font-headline-lg text-headline-lg text-tertiary">2978</div>
+        <div class="font-label-mono text-label-mono text-on-surface-variant">TRAIN IMAGES</div>
+      </div>
+      <div class="text-center">
+        <div class="font-headline-lg text-headline-lg text-tertiary">80.6%</div>
+        <div class="font-label-mono text-label-mono text-on-surface-variant">mAP50 BOX</div>
+      </div>
+      <div class="text-center">
+        <div class="font-headline-lg text-headline-lg text-tertiary">150</div>
+        <div class="font-label-mono text-label-mono text-on-surface-variant">EPOCHS</div>
+      </div>
+      <div class="text-center">
+        <div class="font-headline-lg text-headline-lg text-tertiary">27M</div>
+        <div class="font-label-mono text-label-mono text-on-surface-variant">PARAMS</div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ── Footer ────────────────────────────────────────────────────────────────── -->
+<footer class="bg-surface-container-lowest border-t border-outline-variant w-full py-4 flex justify-between items-center px-margin-desktop">
+  <div class="flex items-center gap-8">
+    <span class="font-label-caps text-label-caps text-on-surface-variant">VISION_TILE · INDUSTRIAL AI</span>
+    <span class="font-label-mono text-label-mono text-on-surface-variant">© 2025 YOLOv8m-seg · v1.0-STABLE</span>
+  </div>
+  <div class="flex gap-6">
+    <a class="font-label-mono text-label-mono text-on-surface-variant hover:text-tertiary transition-colors cursor-pointer">Docs</a>
+    <a class="font-label-mono text-label-mono text-on-surface-variant hover:text-tertiary transition-colors cursor-pointer">GitHub</a>
+  </div>
+</footer>
+
+<!-- ── Loading overlay ───────────────────────────────────────────────────────── -->
+<div id="loading-overlay"
+     class="fixed inset-0 bg-surface/95 backdrop-blur-md z-[200] flex-col items-center justify-center gap-10"
+     style="display:none">
+  <div class="relative w-28 h-28">
+    <div class="absolute inset-0 border-4 border-tertiary/10 rounded-full"></div>
+    <div class="absolute inset-0 border-4 border-transparent border-t-tertiary rounded-full animate-spin"></div>
+    <div class="absolute inset-0 border-4 border-transparent border-r-tertiary/40 rounded-full animate-spin" style="animation-duration:2s"></div>
+    <span class="material-symbols-outlined absolute inset-0 flex items-center justify-center text-[36px] text-tertiary"
+          style="font-variation-settings:'FILL' 1;">biotech</span>
+  </div>
+  <div class="text-center space-y-2">
+    <div class="font-headline-md text-headline-md text-on-surface">ANALYZING TILE...</div>
+    <div id="loading-step" class="font-label-mono text-label-mono text-tertiary">Uploading image...</div>
+  </div>
+  <div class="w-72 bg-surface-container-high border border-outline-variant h-1 overflow-hidden">
+    <div id="loading-bar" class="bg-tertiary h-full transition-all duration-700 ease-out" style="width:0%"></div>
+  </div>
+  <div class="font-label-mono text-[10px] text-on-surface-variant/50">DO NOT CLOSE THIS WINDOW</div>
+</div>
+
+<!-- ── Hidden file input ─────────────────────────────────────────────────────── -->
+<input type="file" id="file-input" accept="image/*,.jpg,.jpeg,.png,.webp,.bmp" class="hidden"/>
+
+<!-- ── JavaScript ────────────────────────────────────────────────────────────── -->
+<script>
+  let selectedFile = null;
+
+  // Conf slider
+  const slider = document.getElementById('conf-slider');
+  const confVal = document.getElementById('conf-val');
+  slider.addEventListener('input', () => {
+    confVal.textContent = (slider.value / 100).toFixed(2);
+  });
+
+  // File input change
+  document.getElementById('file-input').addEventListener('change', e => {
+    if (e.target.files.length > 0) setFile(e.target.files[0]);
+  });
+
+  function setFile(file) {
+    selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById('preview-img');
+      img.src = e.target.result;
+      img.classList.remove('opacity-60', 'mix-blend-luminosity');
+      img.classList.add('opacity-90');
+      document.getElementById('drop-instruction').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+
+    const sizeMB = (file.size / 1e6).toFixed(1);
+    document.getElementById('status-label').textContent = 'IMAGE LOADED';
+    document.getElementById('status-sub').innerHTML =
+      `${file.name}<br/>${sizeMB} MB — READY TO ANALYZE`;
+
+    const btn = document.getElementById('analyze-btn');
+    btn.textContent = 'ANALYZE TILE →';
+    btn.classList.add('ring-2', 'ring-tertiary/40');
+  }
+
+  function handleAnalyzeClick() {
+    if (!selectedFile) {
+      document.getElementById('file-input').click();
+    } else {
+      runAnalysis();
+    }
+  }
+
+  function onDropZoneClick() {
+    if (!selectedFile) document.getElementById('file-input').click();
+  }
+
+  function onDragOver(e) {
+    e.preventDefault();
+    document.getElementById('drop-zone').classList.add('ring-2', 'ring-tertiary');
+  }
+  function onDragLeave(e) {
+    document.getElementById('drop-zone').classList.remove('ring-2', 'ring-tertiary');
+  }
+  function onDrop(e) {
+    e.preventDefault();
+    document.getElementById('drop-zone').classList.remove('ring-2', 'ring-tertiary');
+    if (e.dataTransfer.files.length > 0) setFile(e.dataTransfer.files[0]);
+  }
+
+  async function runAnalysis() {
+    const overlay = document.getElementById('loading-overlay');
+    const bar     = document.getElementById('loading-bar');
+    const step    = document.getElementById('loading-step');
+
+    overlay.style.display = 'flex';
+    bar.style.width = '15%';
+    step.textContent = 'Uploading image...';
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    const tileCm = document.getElementById('tile-cm').value;
+    if (tileCm && parseFloat(tileCm) > 0) formData.append('tile_cm', tileCm);
+
+    formData.append('conf', (slider.value / 100).toFixed(2));
+
+    setTimeout(() => { bar.style.width = '45%'; step.textContent = 'Running YOLOv8m-seg...'; }, 600);
+    setTimeout(() => { bar.style.width = '75%'; step.textContent = 'Measuring defects...'; }, 1400);
+
+    try {
+      const resp = await fetch('/analyze', { method: 'POST', body: formData });
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.error || `HTTP ${resp.status}`);
+      }
+      const data = await resp.json();
+      bar.style.width = '95%';
+      step.textContent = 'Rendering dashboard...';
+      setTimeout(() => {
+        window.location.href = `/static/dashboard.html?id=${data.result_id}`;
+      }, 350);
+    } catch (err) {
+      overlay.style.display = 'none';
+      alert('Error: ' + err.message + '\n\nAsegúrate de que el servidor está corriendo:\nuvicorn web.app:app --port 8000');
+    }
+  }
+</script>
+</body>
+</html>

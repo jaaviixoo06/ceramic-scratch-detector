@@ -1,0 +1,16 @@
+Coloca aquí las imágenes que necesita memoria.tex.
+Guárdalas con estos nombres exactos (PNG o JPG):
+
+  prueba_deteccion.png        → Captura de las detecciones PRUEBA5 (cajas roja/verde)
+  label_studio_anotacion.png  → Interfaz Label Studio con polígonos manuales naranjas/verdes
+  label_studio_pseudo.png     → Label Studio con predicciones pseudo-label (rectángulos rosas)
+  early_model_metricas.png    → Métricas del modelo de 3 clases (mAP50 = 0.2008)
+  training_log.png            → Log de entrenamiento épocas 24-28 (GPU_mem, mAP50 subiendo)
+  metricas_finales.png        → Gráficas finales del entrenamiento completo (mAP50 = 0.806)
+
+  filtro_original.png         → Recorte 256px de la baldosa sin filtrar
+  filtro_clahe.png            → El mismo recorte con CLAHE aplicado
+  filtro_blackhat.png         → El mismo recorte con blackhat morfológico aplicado
+
+Si alguna imagen falta, LaTeX compila igual pero deja un espacio en blanco.
+Para compilar: pdflatex memoria.tex && pdflatex memoria.tex

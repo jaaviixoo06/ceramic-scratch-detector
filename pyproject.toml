@@ -1,0 +1,15 @@
+[project]
+name = "vision-artificial"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.14"
+dependencies = [
+    "matplotlib>=3.10.8",
+    "numpy>=2.4.2",
+    "opencv-python>=4.13.0.92",
+    "scikit-image>=0.26.0",
+    "scipy>=1.17.0",
+    "segment-anything>=1.0",
+    "torch>=2.11.0",
+    "torchvision>=0.26.0",
+]

@@ -1,0 +1,11 @@
+# Rayaduras en baldosas ? generado por prepare_dataset.py
+path: C:/Users/javie/PycharmProjects/VISION_ARTIFICIAL/scratch_detector/data
+train: images/train
+val:   images/val
+test:  images/test
+
+nc: 3
+names:
+  0: Rayadura_Grande
+  1: Rayadura_Normal
+  2: Rayadura_Peque?a

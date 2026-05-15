@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VISION_TILE_CORE | Inspection Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "tertiary": "#ffb690",
+          "outline": "#909097",
+          "surface": "#051424",
+          "surface-container-highest": "#273647",
+          "surface-container-low": "#0d1c2d",
+          "secondary": "#b9c7e0",
+          "secondary-container": "#3c4a5e",
+          "error": "#ffb4ab",
+          "error-container": "#93000a",
+          "background": "#051424",
+          "surface-container": "#122131",
+          "on-surface": "#d4e4fa",
+          "outline-variant": "#45464d",
+          "on-primary": "#283044",
+          "surface-bright": "#2c3a4c",
+          "on-background": "#d4e4fa",
+          "on-surface-variant": "#c6c6cd",
+          "surface-container-lowest": "#010f1f",
+          "on-tertiary": "#552100",
+          "primary": "#bec6e0",
+          "surface-container-high": "#1c2b3c",
+          "on-error": "#690005",
+          "tertiary-container": "#2d0e00",
+        },
+        borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+        spacing: {
+          "margin-mobile": "16px", "container-max": "1440px",
+          "gutter": "24px", "unit": "4px", "margin-desktop": "32px"
+        },
+        fontFamily: {
+          "headline-md": ["Inter"], "body-lg": ["Inter"], "headline-xl": ["Inter"],
+          "label-caps": ["Inter"], "headline-lg": ["Inter"], "body-md": ["Inter"],
+          "label-mono": ["JetBrains Mono"]
+        },
+        fontSize: {
+          "headline-md": ["20px", { lineHeight: "28px", fontWeight: "600" }],
+          "body-lg": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+          "headline-xl": ["48px", { lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "700" }],
+          "label-caps": ["11px", { lineHeight: "16px", letterSpacing: "0.1em", fontWeight: "700" }],
+          "headline-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.01em", fontWeight: "600" }],
+          "body-md": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+          "label-mono": ["12px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "500" }]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .dot-grid {
+    background-image: radial-gradient(circle, #334155 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  #main-image { transition: opacity 0.4s; }
+  .defect-card { transition: opacity 0.2s, ring 0.2s; }
+  .defect-card.active { opacity: 1 !important; }
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #45464d; border-radius: 2px; }
+</style>
+</head>
+<body class="bg-background text-on-background font-body-md text-body-md min-h-screen flex flex-col">
+
+<!-- ── Header ───────────────────────────────────────────────────────────────── -->
+<header class="w-full h-16 sticky top-0 bg-surface text-primary border-b border-outline-variant z-50 flex justify-between items-center px-margin-desktop">
+  <div class="flex items-center gap-4">
+    <a href="/static/index.html" class="font-headline-md text-headline-md font-bold tracking-tight text-on-surface hover:text-tertiary transition-colors cursor-pointer">VISION_TILE_CORE</a>
+    <div class="h-6 w-px bg-outline-variant mx-2"></div>
+    <div class="flex gap-6">
+      <span class="text-tertiary font-bold border-b-2 border-tertiary cursor-pointer py-1">Live Detect</span>
+      <a href="/static/index.html" class="text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer py-1 px-2 rounded">Home</a>
+    </div>
+  </div>
+  <div class="flex items-center gap-4">
+    <div id="header-filename" class="hidden lg:flex bg-surface-container-high px-3 py-1 items-center gap-2 rounded border border-outline-variant">
+      <span class="material-symbols-outlined text-on-surface-variant" style="font-size:18px">image</span>
+      <span class="text-on-surface-variant font-label-mono text-label-mono" id="header-file">—</span>
+    </div>
+    <span class="material-symbols-outlined text-on-surface cursor-pointer hover:bg-surface-container-high p-2 rounded transition-colors">notifications</span>
+    <span class="material-symbols-outlined text-on-surface cursor-pointer hover:bg-surface-container-high p-2 rounded transition-colors">settings</span>
+    <span class="material-symbols-outlined text-on-surface cursor-pointer hover:bg-surface-container-high p-2 rounded transition-colors" style="font-variation-settings:'FILL' 1;">account_circle</span>
+  </div>
+</header>
+
+<div class="flex flex-1 overflow-hidden">
+
+  <!-- ── Sidebar ─────────────────────────────────────────────────────────────── -->
+  <aside class="hidden md:flex flex-col h-full w-64 bg-surface-container border-r border-outline-variant flex-shrink-0">
+    <div class="p-6 border-b border-outline-variant flex items-center gap-3">
+      <div class="w-10 h-10 bg-tertiary-container rounded flex items-center justify-center">
+        <span class="material-symbols-outlined text-tertiary">biotech</span>
+      </div>
+      <div>
+        <div class="font-label-caps text-label-caps text-on-surface">ANALYSIS_UNIT</div>
+        <div class="font-label-mono text-label-mono text-on-surface-variant">YOLOv8m-seg</div>
+      </div>
+    </div>
+
+    <nav class="flex-1 py-4">
+      <a href="/static/index.html" class="flex items-center gap-4 text-on-surface-variant py-3 px-6 hover:bg-surface-bright transition-all cursor-pointer">
+        <span class="material-symbols-outlined">home</span>
+        <span class="font-label-caps text-label-caps">Home</span>
+      </a>
+      <div class="flex items-center gap-4 bg-surface-container-highest text-tertiary border-l-4 border-tertiary py-3 px-6 cursor-pointer">
+        <span class="material-symbols-outlined">biotech</span>
+        <span class="font-label-caps text-label-caps">Live Detect</span>
+      </div>
+      <div class="flex items-center gap-4 text-on-surface-variant py-3 px-6 hover:bg-surface-bright transition-all cursor-pointer">
+        <span class="material-symbols-outlined">analytics</span>
+        <span class="font-label-caps text-label-caps">Analytics</span>
+      </div>
+    </nav>
+
+    <div class="mt-auto p-4 flex flex-col gap-2">
+      <a href="/static/index.html"
+         class="w-full py-3 bg-tertiary text-on-tertiary font-label-caps text-label-caps rounded font-bold hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined" style="font-size:18px">add</span>
+        New Analysis
+      </a>
+      <div class="h-px bg-outline-variant my-2"></div>
+      <!-- Model info -->
+      <div class="p-3 bg-surface-container-high rounded border border-outline-variant space-y-1">
+        <div class="font-label-caps text-[10px] text-on-surface-variant">MODEL INFO</div>
+        <div class="font-label-mono text-[10px] text-on-surface">YOLOv8m-seg · best5.pt</div>
+        <div class="font-label-mono text-[10px] text-on-surface-variant">mAP50: 0.806 · 2 classes</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main content ────────────────────────────────────────────────────────── -->
+  <main class="flex-1 flex flex-col overflow-y-auto p-gutter gap-gutter">
+
+    <!-- Page header -->
+    <div class="flex justify-between items-end">
+      <div>
+        <h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Detection Analysis</h1>
+        <p class="text-on-surface-variant font-label-mono text-label-mono mt-1">
+          FILE: <span id="batch-id">—</span> · <span id="batch-ts">—</span>
+        </p>
+      </div>
+      <div class="flex gap-3">
+        <a href="/static/index.html"
+           class="px-6 py-2 border border-outline text-on-surface font-label-caps text-label-caps rounded flex items-center gap-2 hover:bg-surface-bright transition-all active:scale-95 cursor-pointer">
+          <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>
+          New Analysis
+        </a>
+        <button id="export-btn"
+                class="px-6 py-2 bg-tertiary text-on-tertiary font-label-caps text-label-caps rounded flex items-center gap-2 hover:brightness-110 transition-all active:scale-95">
+          <span class="material-symbols-outlined" style="font-size:18px">file_download</span>
+          Export Report
+        </button>
+      </div>
+    </div>
+
+    <!-- Main grid -->
+    <div class="grid grid-cols-12 gap-gutter flex-1">
+
+      <!-- ── Left column: image + gallery ──────────────────────────────────── -->
+      <div class="col-span-12 xl:col-span-8 flex flex-col gap-4">
+
+        <!-- Main image viewer -->
+        <div class="relative bg-surface-container rounded border border-outline-variant overflow-hidden flex-1 min-h-[480px] dot-grid">
+          <div class="absolute inset-0 flex items-center justify-center p-4">
+            <img id="main-image"
+                 src=""
+                 alt="Annotated tile"
+                 class="max-w-full max-h-full object-contain rounded shadow-2xl border-4 border-surface-variant opacity-0"
+                 style="max-height: 480px;"/>
+            <!-- Placeholder while loading -->
+            <div id="img-placeholder" class="flex flex-col items-center gap-4 text-on-surface-variant">
+              <div class="w-12 h-12 border-4 border-tertiary/20 border-t-tertiary rounded-full" style="animation: spin 1s linear infinite"></div>
+              <span class="font-label-mono text-label-mono">Loading results...</span>
+            </div>
+          </div>
+
+          <!-- HUD overlays -->
+          <div class="absolute top-4 left-4 font-label-mono text-label-mono text-tertiary bg-surface/80 px-2 py-1 border border-tertiary/30 pointer-events-none">
+            YOLOv8m-seg · CONF <span id="hud-conf">—</span>
+          </div>
+          <div class="absolute top-4 right-4 font-label-mono text-label-mono text-on-surface-variant bg-surface/80 px-2 py-1 border border-outline-variant pointer-events-none">
+            <span id="hud-ms">—</span> ms · <span id="hud-size">—</span>
+          </div>
+          <div id="hud-scale" class="absolute bottom-4 left-4 font-label-mono text-[10px] text-on-surface-variant pointer-events-none hidden">
+            SCALE: <span id="hud-scale-val">—</span>
+          </div>
+        </div>
+
+        <!-- Defect gallery -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-label-caps text-label-caps text-on-surface-variant">DEFECT GALLERY</span>
+            <span id="gallery-count" class="font-label-mono text-[10px] text-on-surface-variant">0 detections</span>
+          </div>
+          <div id="defect-gallery" class="grid grid-cols-4 md:grid-cols-6 gap-3 overflow-x-auto">
+            <!-- populated by JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Right sidebar ─────────────────────────────────────────────────── -->
+      <div class="col-span-12 xl:col-span-4 flex flex-col gap-gutter">
+
+        <!-- Verdict card -->
+        <div class="bg-surface-container border border-outline-variant p-6 rounded relative overflow-hidden">
+          <div class="absolute top-0 right-0 p-4">
+            <span id="verdict-icon" class="material-symbols-outlined text-[24px]"
+                  style="font-variation-settings:'FILL' 1;">warning</span>
+          </div>
+          <div class="font-label-caps text-label-caps text-on-surface-variant mb-1">Inspection Result</div>
+          <div id="verdict" class="font-headline-md text-headline-md text-tertiary flex items-center gap-2">
+            —
+          </div>
+          <div class="mt-4 flex flex-col gap-3">
+            <div class="flex justify-between items-center border-b border-outline-variant pb-2">
+              <span class="text-on-surface-variant text-body-md">Defects Found</span>
+              <span id="kpi-total" class="font-label-mono text-tertiary">—</span>
+            </div>
+            <div class="flex justify-between items-center border-b border-outline-variant pb-2">
+              <span class="text-on-surface-variant text-body-md">Rayaduras</span>
+              <span id="kpi-scratches" class="font-label-mono text-tertiary">—</span>
+            </div>
+            <div class="flex justify-between items-center border-b border-outline-variant pb-2">
+              <span class="text-on-surface-variant text-body-md">Agujeros</span>
+              <span id="kpi-holes" class="font-label-mono text-primary">—</span>
+            </div>
+            <div class="flex justify-between items-center border-b border-outline-variant pb-2">
+              <span class="text-on-surface-variant text-body-md">Conf. media</span>
+              <span id="kpi-conf" class="font-label-mono text-on-surface">—</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-on-surface-variant text-body-md">Inferencia</span>
+              <span id="kpi-ms" class="font-label-mono text-on-surface">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Classification table -->
+        <div class="bg-surface-container border border-outline-variant rounded flex-1">
+          <div class="p-4 border-b border-outline-variant bg-surface-container-high flex justify-between items-center">
+            <h3 class="font-label-caps text-label-caps text-on-surface">Anomaly Classification</h3>
+            <span class="material-symbols-outlined text-on-surface-variant" style="font-size:18px">tune</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left font-label-mono text-label-mono">
+              <thead class="bg-surface-container-low text-on-surface-variant">
+                <tr>
+                  <th class="px-4 py-3 border-b border-outline-variant">TYPE</th>
+                  <th class="px-4 py-3 border-b border-outline-variant">COUNT</th>
+                  <th class="px-4 py-3 border-b border-outline-variant">SEVERITY</th>
+                </tr>
+              </thead>
+              <tbody class="text-on-surface">
+                <tr class="hover:bg-surface-bright transition-colors border-b border-outline-variant/30">
+                  <td class="px-4 py-4 flex items-center gap-2">
+                    <div class="w-2 h-2 bg-tertiary flex-shrink-0"></div>SCRATCHES
+                  </td>
+                  <td id="tbl-scratches-count" class="px-4 py-4">—</td>
+                  <td id="tbl-scratches-sev" class="px-4 py-4 text-tertiary font-bold">—</td>
+                </tr>
+                <tr class="hover:bg-surface-bright transition-colors border-b border-outline-variant/30">
+                  <td class="px-4 py-4 flex items-center gap-2">
+                    <div class="w-2 h-2 bg-primary flex-shrink-0"></div>HOLES
+                  </td>
+                  <td id="tbl-holes-count" class="px-4 py-4">—</td>
+                  <td id="tbl-holes-sev" class="px-4 py-4 text-primary">—</td>
+                </tr>
+                <tr class="hover:bg-surface-bright transition-colors">
+                  <td class="px-4 py-4 flex items-center gap-2">
+                    <div class="w-2 h-2 bg-on-surface-variant/30 flex-shrink-0"></div>OTHER
+                  </td>
+                  <td class="px-4 py-4">00</td>
+                  <td class="px-4 py-4 text-on-surface-variant">NONE</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- AI log -->
+          <div class="p-6 border-t border-outline-variant">
+            <div class="bg-surface-container-low p-4 rounded border-l-4 border-primary max-h-32 overflow-y-auto">
+              <div class="font-label-caps text-[10px] text-primary mb-1">AI_SYSTEM_LOG</div>
+              <p id="ai-log" class="text-[11px] font-label-mono leading-relaxed text-on-surface-variant">
+                Waiting for results...
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scale info card (shown only if tile_cm provided) -->
+        <div id="scale-card" class="bg-surface-container border border-outline-variant p-5 rounded hidden">
+          <div class="font-label-caps text-label-caps text-on-surface-variant mb-3">CALIBRACIÓN ESPACIAL</div>
+          <div class="space-y-2 font-label-mono text-label-mono">
+            <div class="flex justify-between">
+              <span class="text-on-surface-variant">Tamaño real</span>
+              <span id="sc-cm" class="text-tertiary">—</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-on-surface-variant">Baldosa en px</span>
+              <span id="sc-px" class="text-on-surface">—</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-on-surface-variant">Escala</span>
+              <span id="sc-scale" class="text-on-surface">—</span>
+            </div>
+            <div id="sc-fallback-warning" class="hidden text-[10px] text-error mt-2">
+              ⚠ Contorno de baldosa no detectado — escala estimada por tamaño de imagen
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Detailed measurements table (shown if defects exist) -->
+    <div id="measures-section" class="hidden">
+      <div class="font-label-caps text-label-caps text-on-surface-variant mb-3">MEASUREMENTS TABLE</div>
+      <div class="bg-surface-container border border-outline-variant rounded overflow-x-auto">
+        <table class="w-full text-left font-label-mono text-label-mono">
+          <thead class="bg-surface-container-high text-on-surface-variant">
+            <tr>
+              <th class="px-4 py-3 border-b border-outline-variant">ID</th>
+              <th class="px-4 py-3 border-b border-outline-variant">TYPE</th>
+              <th class="px-4 py-3 border-b border-outline-variant">CONF</th>
+              <th class="px-4 py-3 border-b border-outline-variant">LENGTH</th>
+              <th class="px-4 py-3 border-b border-outline-variant">WIDTH / GROSOR</th>
+              <th class="px-4 py-3 border-b border-outline-variant">AREA</th>
+            </tr>
+          </thead>
+          <tbody id="measures-body" class="text-on-surface divide-y divide-outline-variant/30">
+            <!-- populated by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── Footer ────────────────────────────────────────────────────────────────── -->
+<footer class="w-full py-4 bg-surface-container-lowest text-on-surface-variant font-label-mono text-label-mono border-t border-outline-variant flex justify-between items-center px-margin-desktop flex-shrink-0">
+  <div class="flex items-center gap-6">
+    <span class="font-label-caps text-label-caps text-on-surface opacity-70">VISION_TILE · INDUSTRIAL AI</span>
+    <span>© 2025 YOLOv8m-seg · v1.0-STABLE</span>
+  </div>
+  <div class="flex gap-6">
+    <span class="hover:text-tertiary transition-colors cursor-pointer">Docs</span>
+    <span class="hover:text-tertiary transition-colors cursor-pointer">GitHub</span>
+  </div>
+</footer>
+
+<!-- ── Hover preview popup ────────────────────────────────────────────────────── -->
+<div id="defect-popup"
+     class="fixed z-[500] pointer-events-none select-none"
+     style="display:none; top:0; left:0;">
+  <div class="bg-surface-container-highest border border-outline-variant shadow-2xl overflow-hidden"
+       style="width:260px;">
+    <img id="popup-img" class="w-full object-cover" style="height:180px; object-fit:cover;" alt=""/>
+    <div class="p-3 space-y-1 border-t border-outline-variant">
+      <div class="flex items-center justify-between">
+        <span id="popup-type" class="font-label-caps text-label-caps text-tertiary"></span>
+        <span id="popup-conf" class="font-label-mono text-[11px] text-on-surface-variant"></span>
+      </div>
+      <div id="popup-size" class="font-label-mono text-[10px] text-on-surface-variant"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Lightbox (click to fullscreen crop) ───────────────────────────────────── -->
+<div id="lightbox"
+     class="fixed inset-0 bg-surface/90 backdrop-blur-md z-[600] items-center justify-center"
+     style="display:none"
+     onclick="closeLightbox()">
+  <div onclick="event.stopPropagation()"
+       class="relative flex flex-col gap-4 p-6 bg-surface-container border border-outline-variant max-w-2xl w-full mx-4">
+    <!-- close -->
+    <button onclick="closeLightbox()"
+            class="absolute top-3 right-3 material-symbols-outlined text-on-surface-variant hover:text-tertiary transition-colors text-[20px]">close</button>
+    <img id="lightbox-img" class="w-full max-h-[65vh] object-contain" alt=""/>
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <div id="lightbox-type" class="font-label-caps text-label-caps text-tertiary mb-1"></div>
+        <div id="lightbox-conf" class="font-label-mono text-label-mono text-on-surface mb-1"></div>
+        <div id="lightbox-size" class="font-label-mono text-[11px] text-on-surface-variant"></div>
+      </div>
+      <div id="lightbox-nav" class="flex gap-2"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #defect-popup { transition: opacity 0.12s ease; }
+</style>
+
+<!-- ── JavaScript ────────────────────────────────────────────────────────────── -->
+<script>
+  let _data = null;
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    const id = new URLSearchParams(window.location.search).get('id');
+    if (!id) { showError('Sin ID de resultado. ¿Volviste sin analizar una imagen?'); return; }
+    loadResults(id);
+  });
+
+  async function loadResults(id) {
+    try {
+      const resp = await fetch(`/results/${id}`);
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${resp.status}`);
+      }
+      _data = await resp.json();
+      render(_data);
+    } catch (e) {
+      showError(e.message);
+    }
+  }
+
+  // ── Main render ───────────────────────────────────────────────────────────
+  function render(d) {
+    const now = new Date();
+    set('batch-id', d.filename || '—');
+    set('header-file', d.filename || '—');
+    set('batch-ts', now.toLocaleString());
+    set('hud-conf', d.conf_thresh ? d.conf_thresh.toFixed(2) : '0.25');
+    set('hud-ms',   d.elapsed_ms + ' ms');
+    set('hud-size', `${d.img_w}×${d.img_h}`);
+
+    // Annotated image
+    const img = document.getElementById('main-image');
+    img.src = `data:image/jpeg;base64,${d.annotated_b64}`;
+    img.onload = () => {
+      img.classList.remove('opacity-0');
+      document.getElementById('img-placeholder').style.display = 'none';
+    };
+
+    // KPIs
+    const scratches = d.summary['Rayadura'] || 0;
+    const holes     = d.summary['Agujero']  || 0;
+    const total     = scratches + holes;
+    const avgConf   = d.defects.length
+      ? (d.defects.reduce((s, x) => s + x.conf, 0) / d.defects.length * 100).toFixed(1)
+      : '—';
+
+    set('kpi-total',    pad2(total));
+    set('kpi-scratches', pad2(scratches));
+    set('kpi-holes',    pad2(holes));
+    set('kpi-conf',     avgConf !== '—' ? avgConf + '%' : '—');
+    set('kpi-ms',       d.elapsed_ms + ' ms');
+
+    // Verdict — neutral, professional wording
+    const passed    = d.verdict === 'PASSED';
+    const verdictEl = document.getElementById('verdict');
+    const iconEl    = document.getElementById('verdict-icon');
+
+    if (passed) {
+      verdictEl.textContent = 'NO DEFECTS';
+      verdictEl.className   = verdictEl.className.replace('text-tertiary', 'text-green-400');
+      iconEl.textContent    = 'check_circle';
+      iconEl.style.color    = '#4ade80';
+    } else {
+      verdictEl.textContent = 'ANALYSIS COMPLETE';
+      verdictEl.className   = verdictEl.className.replace('text-error', 'text-tertiary');
+      iconEl.textContent    = 'biotech';
+      iconEl.style.color    = '#ffb690';
+    }
+
+    // Classification table
+    set('tbl-scratches-count', pad2(scratches));
+    set('tbl-holes-count',     pad2(holes));
+    sev('tbl-scratches-sev', scratches, 'HIGH',   'text-tertiary');
+    sev('tbl-holes-sev',     holes,     'MEDIUM',  'text-primary');
+
+    // AI log
+    const unit = d.unit || 'px';
+    const scaleNote = d.tile_info
+      ? ` Scale: ${d.tile_info.scale} mm/px (${d.tile_info.tile_cm}cm tile${d.tile_info.fallback ? ', estimated' : ''}).`
+      : '';
+    set('ai-log',
+      `[LOG] ${new Date().toLocaleTimeString()} — YOLOv8m-seg processed in ${d.elapsed_ms}ms. ` +
+      `Conf≥${d.conf_thresh || 0.25}. Detected: ${scratches} scratch(es), ${holes} hole(s).` +
+      scaleNote
+    );
+
+    // Scale card
+    if (d.tile_info) {
+      show('scale-card');
+      show('hud-scale');
+      set('sc-cm', d.tile_info.tile_cm + ' cm');
+      set('sc-px', d.tile_info.tile_px + ' px');
+      set('sc-scale', d.tile_info.scale + ' mm/px');
+      set('hud-scale-val', d.tile_info.scale + ' mm/px');
+      if (d.tile_info.fallback) show('sc-fallback-warning');
+    }
+
+    // Gallery
+    renderGallery(d.defects);
+
+    // Measures table
+    if (d.defects.length > 0) {
+      show('measures-section');
+      renderMeasures(d.defects, unit);
+    }
+  }
+
+  // ── Gallery ───────────────────────────────────────────────────────────────
+  let _galleryDefects = [];
+
+  function renderGallery(defects) {
+    _galleryDefects = defects;
+    const gallery = document.getElementById('defect-gallery');
+    set('gallery-count', `${defects.length} detection${defects.length !== 1 ? 's' : ''}`);
+    gallery.innerHTML = '';
+
+    if (defects.length === 0) {
+      gallery.innerHTML = `
+        <div class="col-span-4 text-center text-on-surface-variant font-label-mono text-label-mono py-10 border border-outline-variant/30 rounded">
+          <span class="material-symbols-outlined text-[32px] text-green-400 mb-2 block">check_circle</span>
+          NO DEFECTS DETECTED — TILE PASSED INSPECTION
+        </div>`;
+      return;
+    }
+
+    defects.forEach((d, i) => {
+      const isScratch = d.cls_id === 1;
+      const borderCls = isScratch ? 'border-tertiary' : 'border-primary';
+      const textCls   = isScratch ? 'text-tertiary'   : 'text-primary';
+
+      const card = document.createElement('div');
+      card.className = `defect-card bg-surface-container border border-outline-variant p-2 flex flex-col gap-1 cursor-pointer rounded transition-all duration-150
+        ${i === 0 ? 'opacity-100 ring-1 ' + borderCls : 'opacity-55 hover:opacity-100'}`;
+      card.innerHTML = `
+        <div class="h-20 bg-surface-variant overflow-hidden rounded">
+          <img src="data:image/jpeg;base64,${d.crop_b64}"
+               class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+               alt="Defect ${d.id}"/>
+        </div>
+        <div class="flex justify-between items-center px-0.5">
+          <span class="font-label-mono text-[9px] ${textCls} truncate">DET_${pad2(d.id)} (${d.type_en})</span>
+          <span class="font-label-mono text-[9px] text-on-surface-variant flex-shrink-0">${(d.conf * 100).toFixed(0)}%</span>
+        </div>
+        <div class="px-0.5">
+          <span class="font-label-mono text-[8px] text-on-surface-variant leading-tight">${d.size_str}</span>
+        </div>`;
+
+      // ── Hover popup
+      card.addEventListener('mouseenter', e => showPopup(e, d, card));
+      card.addEventListener('mousemove',  e => movePopup(e));
+      card.addEventListener('mouseleave', hidePopup);
+
+      // ── Click: lightbox + highlight
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.defect-card').forEach(c => {
+          c.classList.remove('opacity-100', 'ring-1', 'ring-tertiary', 'ring-primary');
+          c.classList.add('opacity-55');
+        });
+        card.classList.remove('opacity-55');
+        card.classList.add('opacity-100', 'ring-1', isScratch ? 'ring-tertiary' : 'ring-primary');
+        hidePopup();
+        openLightbox(d, i);
+      });
+
+      gallery.appendChild(card);
+    });
+  }
+
+  // ── Hover popup logic ─────────────────────────────────────────────────────
+  const popup = document.getElementById('defect-popup');
+
+  function showPopup(e, d, card) {
+    document.getElementById('popup-img').src  = `data:image/jpeg;base64,${d.crop_b64}`;
+    document.getElementById('popup-type').textContent = `DET_${pad2(d.id)} · ${d.type_en}`;
+    document.getElementById('popup-conf').textContent = `${(d.conf * 100).toFixed(1)}% conf`;
+    document.getElementById('popup-size').textContent = d.size_str;
+    popup.style.display  = 'block';
+    popup.style.opacity  = '1';
+    positionPopup(e);
+  }
+
+  function movePopup(e) {
+    positionPopup(e);
+  }
+
+  function positionPopup(e) {
+    const W = 260, pad = 16;
+    let x = e.clientX + 20;
+    let y = e.clientY - 80;
+    if (x + W > window.innerWidth  - pad) x = e.clientX - W - 20;
+    if (y < pad)                          y = pad;
+    if (y + 260 > window.innerHeight - pad) y = window.innerHeight - 260 - pad;
+    popup.style.left = x + 'px';
+    popup.style.top  = y + 'px';
+  }
+
+  function hidePopup() {
+    popup.style.opacity = '0';
+    setTimeout(() => { popup.style.display = 'none'; }, 120);
+  }
+
+  // ── Lightbox logic ────────────────────────────────────────────────────────
+  let _lightboxIdx = 0;
+
+  function openLightbox(d, idx) {
+    _lightboxIdx = idx;
+    fillLightbox(d);
+    document.getElementById('lightbox').style.display = 'flex';
+    document.addEventListener('keydown', onLightboxKey);
+  }
+
+  function fillLightbox(d) {
+    const isScratch = d.cls_id === 1;
+    document.getElementById('lightbox-img').src   = `data:image/jpeg;base64,${d.crop_b64}`;
+    document.getElementById('lightbox-type').textContent = `DET_${pad2(d.id)} · ${d.type_en}`;
+    document.getElementById('lightbox-type').className  = `font-label-caps text-label-caps mb-1 ${isScratch ? 'text-tertiary' : 'text-primary'}`;
+    document.getElementById('lightbox-conf').textContent = `Confidence: ${(d.conf * 100).toFixed(1)}%`;
+    document.getElementById('lightbox-size').textContent = d.size_str;
+    // Nav arrows
+    const nav = document.getElementById('lightbox-nav');
+    nav.innerHTML = `
+      <button onclick="lightboxNav(-1)" class="border border-outline-variant text-on-surface font-label-caps text-label-caps px-3 py-2 hover:bg-surface-container-high transition-colors flex items-center gap-1">
+        <span class="material-symbols-outlined text-[16px]">arrow_back</span> PREV
+      </button>
+      <button onclick="lightboxNav(+1)" class="border border-outline-variant text-on-surface font-label-caps text-label-caps px-3 py-2 hover:bg-surface-container-high transition-colors flex items-center gap-1">
+        NEXT <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+      </button>`;
+  }
+
+  function lightboxNav(dir) {
+    const n   = _galleryDefects.length;
+    _lightboxIdx = (_lightboxIdx + dir + n) % n;
+    fillLightbox(_galleryDefects[_lightboxIdx]);
+    // Sync gallery highlight
+    document.querySelectorAll('.defect-card').forEach((c, i) => {
+      const d = _galleryDefects[i];
+      c.classList.remove('opacity-100', 'ring-1', 'ring-tertiary', 'ring-primary', 'opacity-55');
+      c.classList.add(i === _lightboxIdx ? 'opacity-100' : 'opacity-55');
+      if (i === _lightboxIdx) c.classList.add('ring-1', d.cls_id === 1 ? 'ring-tertiary' : 'ring-primary');
+    });
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').style.display = 'none';
+    document.removeEventListener('keydown', onLightboxKey);
+  }
+
+  function onLightboxKey(e) {
+    if (e.key === 'Escape')     closeLightbox();
+    if (e.key === 'ArrowRight') lightboxNav(+1);
+    if (e.key === 'ArrowLeft')  lightboxNav(-1);
+  }
+
+  // ── Measures table ────────────────────────────────────────────────────────
+  function renderMeasures(defects, unit) {
+    const u2 = unit === 'mm' ? 'mm²' : 'px²';
+    const tbody = document.getElementById('measures-body');
+    tbody.innerHTML = defects.map(d => {
+      const m  = d.measures || {};
+      const isScratch = d.cls_id === 1;
+      const colorCls  = isScratch ? 'text-tertiary' : 'text-primary';
+
+      const length = fmt(m[`length_${unit}`] ?? m.length_px ?? 0);
+      const width  = fmt(m[`width_${unit}`]  ?? m.width_px  ?? 0);
+      const area   = fmt(m[`area_${unit === 'mm' ? 'mm2' : 'px'}`] ?? m.area_px ?? 0, 0);
+
+      return `<tr class="hover:bg-surface-bright transition-colors">
+        <td class="px-4 py-3 font-bold ${colorCls}">DET_${pad2(d.id)}</td>
+        <td class="px-4 py-3">${d.type_en}</td>
+        <td class="px-4 py-3">${(d.conf * 100).toFixed(1)}%</td>
+        <td class="px-4 py-3">${length} ${unit}</td>
+        <td class="px-4 py-3">${width} ${unit}</td>
+        <td class="px-4 py-3">${area} ${u2}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── Export ────────────────────────────────────────────────────────────────
+  document.getElementById('export-btn').addEventListener('click', () => {
+    if (!_data) return;
+    const d = _data;
+    const lines = [
+      '=== VISION_TILE_CORE — INSPECTION REPORT ===',
+      `File:     ${d.filename}`,
+      `Date:     ${new Date().toISOString()}`,
+      `Verdict:  ${d.verdict}`,
+      `Inference: ${d.elapsed_ms} ms`,
+      `Image:    ${d.img_w}×${d.img_h} px`,
+      d.tile_info ? `Scale:    ${d.tile_info.scale} mm/px (${d.tile_info.tile_cm}cm tile)` : '',
+      '',
+      '--- DEFECTS ---',
+      ...d.defects.map(x =>
+        `[${x.type_en}] DET_${pad2(x.id)}  conf=${(x.conf*100).toFixed(1)}%  ${x.size_str}`
+      ),
+      '',
+      `Total:    ${d.defects.length} defect(s)`,
+      `  Rayaduras: ${d.summary['Rayadura'] || 0}`,
+      `  Agujeros:  ${d.summary['Agujero']  || 0}`,
+    ].filter(l => l !== undefined).join('\n');
+
+    const blob = new Blob([lines], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `vtc_report_${(d.filename || 'tile').replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.txt`;
+    a.click();
+  });
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function set(id, val)  { const el = document.getElementById(id); if (el) el.textContent = val; }
+  function show(id)      { const el = document.getElementById(id); if (el) el.classList.remove('hidden'); }
+  function pad2(n)       { return String(n).padStart(2, '0'); }
+  function fmt(v, dec=1) { return Number(v).toFixed(dec); }
+
+  function sev(id, count, label, colorCls) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = count > 0 ? label : 'NONE';
+    if (count === 0) {
+      el.className = el.className.replace(colorCls, '').replace(/text-\w+-\d+/g, '') + ' text-on-surface-variant';
+    }
+  }
+
+  function showError(msg) {
+    document.querySelector('main').innerHTML = `
+      <div class="flex flex-col items-center justify-center h-full gap-6 text-center p-12">
+        <span class="material-symbols-outlined text-[64px] text-error">error</span>
+        <h2 class="font-headline-lg text-headline-lg text-on-surface">Error cargando resultados</h2>
+        <p class="font-label-mono text-label-mono text-on-surface-variant max-w-md">${msg}</p>
+        <a href="/static/index.html"
+           class="bg-tertiary text-on-tertiary font-label-caps text-label-caps px-8 py-4 hover:brightness-110 transition-all">
+          ← NUEVO ANÁLISIS
+        </a>
+      </div>`;
+  }
+</script>
+</body>
+</html>

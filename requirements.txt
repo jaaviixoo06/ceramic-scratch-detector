@@ -1,0 +1,31 @@
+# ============================================================
+#  Ceramic Defect Detector — Python dependencies
+#  Install with:  pip install -r requirements.txt
+# ============================================================
+
+# --- Web server (FastAPI backend) ---
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9
+
+# --- Computer vision & ML ---
+ultralytics>=8.2.0          # YOLOv8 / YOLO11 (includes YOLO training & inference)
+opencv-python>=4.10.0.84
+numpy>=1.26.0
+Pillow>=10.3.0
+
+# --- Deep learning (CPU fallback; for GPU see README) ---
+torch>=2.3.0
+torchvision>=0.18.0
+
+# --- Data augmentation (training pipeline) ---
+albumentations>=1.4.0
+
+# --- Scientific & visualisation ---
+matplotlib>=3.9.0
+scipy>=1.13.0
+scikit-image>=0.23.0
+
+# --- Annotation pipeline (optional, only for pseudo-labeling) ---
+# label-studio-sdk>=0.0.32
+# segment-anything>=1.0

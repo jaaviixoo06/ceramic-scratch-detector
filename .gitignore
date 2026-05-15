@@ -1,0 +1,76 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# === Virtual environments ===
+.venv/
+venv/
+env/
+ENV/
+
+# === PyCharm / IDE ===
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# === Claude Code ===
+.claude/
+
+# === Model weights (large files — download from Releases) ===
+modelos/*.pt
+scratch_detector/outputs/runs/*/weights/*.pt
+
+# === Training outputs & logs ===
+scratch_detector/outputs/runs/
+scratch_detector/outputs/predictions/
+scratch_detector/outputs/weights_history/
+scratch_detector/outputs/train_log.txt
+scratch_detector/outputs/train_err.txt
+
+# === Datasets (too large — not tracked) ===
+scratch_detector/data/images/
+scratch_detector/data/labels/
+scratch_detector/data/ls_dataset/
+scratch_detector/data/ls_augmented/
+scratch_detector/data/labeled_originals/
+scratch_detector/_dataset2_preview/
+scratch_detector/_kaggle_extract/
+
+# === Testing / legacy ===
+testing/pruebas_detector/
+testing/apps/node_modules/
+testing/node_modules/
+node_modules/
+
+# === Video (hosted in GitHub Releases) ===
+scratch_detector/video_testing_web.mp4
+
+# === Misc ===
+*.log
+*.db
+*.sqlite
+*.DS_Store
+Thumbs.db
+*.bak
+*.tmp
+.env
+*.zip
+memoria_overleaf.zip
+
+# === LaTeX build artifacts ===
+scratch_detector/memoria.aux
+scratch_detector/memoria.log
+scratch_detector/memoria.out
+scratch_detector/memoria.toc
+scratch_detector/memoria.fdb_latexmk
+scratch_detector/memoria.fls
+scratch_detector/*.synctex.gz
