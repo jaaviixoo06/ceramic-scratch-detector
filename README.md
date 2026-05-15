@@ -1,38 +1,38 @@
-# Ceramic Defect Detector
+# Detector de Defectos en Baldosas Cerámicas
 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python&logoColor=white)
 ![YOLOv8](https://img.shields.io/badge/YOLOv8m--seg-ultralytics-orange)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.111%2B-009688?logo=fastapi&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green)
+![Licencia](https://img.shields.io/badge/Licencia-MIT-green)
 
-> **AI-powered ceramic tile quality inspection** — detects surface defects (scratches and holes) in real time using YOLOv8m instance segmentation, measures their dimensions in millimetres, and exposes a full web dashboard ready for industrial integration.
+> **Sistema de inspección visual de calidad cerámica mediante inteligencia artificial** — detecta defectos superficiales (rayaduras y agujeros) en tiempo real con segmentación de instancias YOLOv8m, mide sus dimensiones en milímetros y ofrece un panel web completo listo para integración industrial.
 
 ---
 
 ## Demo
 
-> **Full walkthrough video** — upload an image, get annotated results, explore the interactive dashboard, and see real defect measurements.
+> **Vídeo explicativo completo** — carga de imagen, resultados anotados, exploración del panel interactivo y mediciones reales de defectos.
 
 https://github.com/jaaviixoo06/ceramic-scratch-detector/releases/download/v1.0/video_testing_web.mp4
 
 ---
 
-## Features
+## Características
 
 | | |
 |---|---|
-| **Instance segmentation** | YOLOv8m-seg with custom-trained weights on 2 classes: `rayadura` (scratch) and `agujero` (hole) |
-| **Real measurements** | Converts pixel masks to mm using tile physical size as scale reference (cv2.minAreaRect) |
-| **Web dashboard** | Upload → analyse → interactive results with annotated overlay, defect table, and lightbox |
-| **Fire-and-poll API** | Async FastAPI backend; the frontend polls `/results/{id}` so large images never block |
-| **Industrial-grade pipeline** | Semi-supervised training with two rounds of pseudo-labeling → 148 manual + 2 132 auto-annotated images |
-| **GPU / CPU support** | Runs on CUDA (NVIDIA) or CPU out of the box |
+| **Segmentación de instancias** | YOLOv8m-seg con pesos entrenados a medida sobre 2 clases: `rayadura` y `agujero` |
+| **Medición real** | Convierte máscaras en píxeles a milímetros usando el tamaño físico de la baldosa como referencia de escala (`cv2.minAreaRect`) |
+| **Panel web interactivo** | Carga → análisis → resultados con imagen anotada, tabla de defectos y visor lightbox |
+| **API asíncrona** | Backend FastAPI con patrón fire-and-poll: el frontend consulta `/results/{id}` sin bloquear el servidor |
+| **Pipeline semi-supervisado** | Dos rondas de pseudo-etiquetado → 148 imágenes manuales + 2 132 auto-anotadas |
+| **Compatible GPU y CPU** | Funciona con CUDA (NVIDIA) o en modo CPU sin configuración adicional |
 
 ---
 
-## Quick Start
+## Instalación rápida
 
-### Option A — One-click installer (recommended)
+### Opción A — Instalador automático (recomendado)
 
 **Windows**
 ```bat
@@ -44,219 +44,217 @@ install.bat
 chmod +x install.sh && ./install.sh
 ```
 
-The script will:
-1. Check your Python version
-2. Create an isolated virtual environment (`.venv`)
-3. Auto-detect your GPU and install the right PyTorch build
-4. Install all dependencies from `requirements.txt`
-5. Guide you through placing the model weights
+El instalador realiza automáticamente los siguientes pasos:
+1. Comprueba la versión de Python instalada
+2. Crea un entorno virtual aislado (`.venv`)
+3. Detecta si hay GPU NVIDIA e instala la versión de PyTorch correspondiente (CUDA o CPU)
+4. Instala todas las dependencias del fichero `requirements.txt`
+5. Indica dónde colocar los pesos del modelo entrenado
 
 ---
 
-### Option B — Manual install
+### Opción B — Instalación manual
 
 ```bash
-# 1. Clone the repository
+# 1. Clonar el repositorio
 git clone https://github.com/jaaviixoo06/ceramic-scratch-detector.git
 cd ceramic-scratch-detector
 
-# 2. Create & activate a virtual environment
+# 2. Crear y activar el entorno virtual
 python -m venv .venv
 source .venv/bin/activate          # Linux / macOS
 # .venv\Scripts\activate           # Windows
 
-# 3. Install PyTorch (choose one)
-# CUDA 12.1 (NVIDIA GPU)
+# 3. Instalar PyTorch (elegir una opción)
+# Con CUDA 12.1 (GPU NVIDIA)
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-# CPU only
+# Solo CPU
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
-# 4. Install remaining dependencies
+# 4. Instalar el resto de dependencias
 pip install -r requirements.txt
 ```
 
 ---
 
-### Model weights
+### Pesos del modelo entrenado
 
-The trained weights are distributed via **GitHub Releases** (not tracked in git due to file size).
+Los pesos entrenados se distribuyen mediante **GitHub Releases** (no se incluyen en el repositorio por su tamaño).
 
-1. Go to the [Releases page](https://github.com/jaaviixoo06/ceramic-scratch-detector/releases/latest)
-2. Download `best.pt`
-3. Place it at:
+1. Accede a la [página de Releases](https://github.com/jaaviixoo06/ceramic-scratch-detector/releases/latest)
+2. Descarga el fichero `best.pt`
+3. Colócalo en la siguiente ruta:
+
 ```
 scratch_detector/
 └── outputs/
     └── runs/
         └── scratch_yolo/
             └── weights/
-                └── best.pt   ← here
+                └── best.pt   ← aquí
 ```
 
-> Alternatively, train your own model — see [Training](#training).
+> También es posible entrenar el modelo desde cero — consulta la sección [Entrenamiento](#entrenamiento).
 
 ---
 
-## Running the web application
+## Ejecución de la aplicación web
 
 ```bash
-# From the repository root (with .venv active)
+# Desde la raíz del repositorio (con el entorno virtual activo)
 cd scratch_detector
 uvicorn web.app:app --reload --port 8000
 ```
 
-Open **http://localhost:8000** in your browser.
+Abre **http://localhost:8000** en el navegador.
 
-### API endpoints
+### Endpoints de la API
 
-| Method | Endpoint | Description |
+| Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| `POST` | `/analyze` | Submit an image for defect analysis |
-| `GET` | `/results/{id}` | Retrieve analysis results by ID |
-| `GET` | `/static/dashboard.html?id={id}` | Open the visual dashboard |
+| `POST` | `/analyze` | Envía una imagen para su análisis |
+| `GET` | `/results/{id}` | Recupera los resultados por identificador |
+| `GET` | `/static/dashboard.html?id={id}` | Abre el panel visual de resultados |
 
-**Example with curl:**
+**Ejemplo con curl:**
 ```bash
 curl -X POST http://localhost:8000/analyze \
-  -F "file=@tile_photo.jpg" \
+  -F "file=@foto_baldosa.jpg" \
   -F "tile_cm=60" \
   -F "conf=0.25"
 ```
 
 ---
 
-## Command-line inference
+## Inferencia desde línea de comandos
 
 ```bash
 cd scratch_detector
 
-# Single image
-python src/infer.py --image path/to/tile.jpg
+# Imagen individual
+python src/infer.py --image ruta/baldosa.jpg
 
-# With real-world scale (60 cm × 60 cm tile)
-python src/infer.py --image path/to/tile.jpg --tile-cm 60
+# Con escala real (baldosa de 60 × 60 cm → resultado en mm)
+python src/infer.py --image ruta/baldosa.jpg --tile-cm 60
 
-# Batch (folder)
-python src/infer.py --image path/to/folder/ --no-show
+# Procesamiento en lote (carpeta)
+python src/infer.py --image ruta/carpeta/ --no-show
 ```
 
 ---
 
-## Training
+## Entrenamiento
 
 ```bash
 cd scratch_detector
 
-# Train with default settings (YOLOv8m-seg, 150 epochs)
+# Entrenamiento con configuración por defecto (YOLOv8m-seg, 150 épocas)
 python src/train.py
 
-# Custom base model and epochs
+# Modelo base y número de épocas personalizados
 python src/train.py --model yolov8s.pt --epochs 100
 ```
 
-Dataset configuration is in `scratch_detector/configs/dataset.yaml`.  
-Training notebooks for Google Colab and Kaggle are available in `scratch_detector/`.
+La configuración del dataset se encuentra en `scratch_detector/configs/dataset.yaml`.  
+Los cuadernos de entrenamiento para Google Colab y Kaggle están disponibles en `scratch_detector/`.
 
 ---
 
-## Measurement formula
+## Fórmula de medición
 
-For each detected defect mask, the bounding rectangle is computed with `cv2.minAreaRect`:
+Para cada máscara de defecto detectada se calcula el rectángulo mínimo orientado con `cv2.minAreaRect`:
 
 ```
-L_px = max(width, height)      # longest axis  → crack length proxy
-G_px = min(width, height)      # shortest axis → crack thickness proxy
+L_px = max(ancho, alto)      # eje más largo  → longitud de la rayadura
+G_px = min(ancho, alto)      # eje más corto  → grosor de la rayadura
 
-scale  s = (tile_real_cm × 10) / L_px_tile    [mm/px]
+Escala   s = (lado_real_cm × 10) / L_px_baldosa    [mm/px]
 
-L_mm = L_px × s
-G_mm = G_px × s
-A_mm² = mask_area_px × s²
+L_mm  = L_px  × s
+G_mm  = G_px  × s
+A_mm² = área_px² × s²
 ```
 
-Where `L_px_tile` is the side of the tile in pixels, derived from the image resolution and the user-supplied `tile_cm` parameter.
+Donde `L_px_baldosa` es el lado de la baldosa en píxeles, derivado de la resolución de la imagen y del parámetro `tile_cm` introducido por el usuario.
 
 ---
 
-## Model performance
+## Rendimiento del modelo
 
-| Metric | Value |
-|--------|-------|
-| Architecture | YOLOv8m-seg (27.3 M params) |
-| Training platform | Kaggle (2× NVIDIA T4, 3.2 h) |
-| Training images | 2 280 (148 manual + 2 132 pseudo-labeled) |
-| **Box mAP@50** | **0.806** |
-| **Mask mAP@50** | **0.520** |
-| Box mAP@50-95 | 0.591 |
-| Mask mAP@50-95 | 0.369 |
+| Métrica | Valor |
+|---------|-------|
+| Arquitectura | YOLOv8m-seg (27,3 M parámetros) |
+| Plataforma de entrenamiento | Kaggle (2× NVIDIA T4, 3,2 h) |
+| Imágenes de entrenamiento | 2 280 (148 manuales + 2 132 pseudo-etiquetadas) |
+| **Box mAP@50** | **0,806** |
+| **Mask mAP@50** | **0,520** |
+| Box mAP@50-95 | 0,591 |
+| Mask mAP@50-95 | 0,369 |
 
 ---
 
-## Project structure
+## Estructura del proyecto
 
 ```
 ceramic-scratch-detector/
 │
-├── scratch_detector/          # Main project package
+├── scratch_detector/              # Paquete principal del proyecto
 │   ├── src/
-│   │   ├── train.py           # YOLOv8 fine-tuning script
-│   │   ├── infer.py           # CLI inference + defect measurement
-│   │   ├── pre_annotate.py    # Auto-labeling with SAM
-│   │   └── prepare_dataset.py # Dataset preparation utilities
+│   │   ├── train.py               # Script de ajuste fino YOLOv8
+│   │   ├── infer.py               # Inferencia CLI + medición de defectos
+│   │   ├── pre_annotate.py        # Auto-etiquetado con SAM
+│   │   └── prepare_dataset.py     # Utilidades de preparación del dataset
 │   │
 │   ├── web/
-│   │   ├── app.py             # FastAPI backend
+│   │   ├── app.py                 # Backend FastAPI
 │   │   └── static/
-│   │       ├── index.html     # Upload interface
-│   │       └── dashboard.html # Results dashboard
+│   │       ├── index.html         # Interfaz de carga de imágenes
+│   │       └── dashboard.html     # Panel de resultados
 │   │
-│   ├── scripts/               # Label Studio & pseudo-labeling helpers
+│   ├── scripts/                   # Utilidades de Label Studio y pseudo-etiquetado
 │   ├── configs/
-│   │   └── dataset.yaml       # YOLO dataset config
-│   ├── colab_train.ipynb      # Google Colab training notebook
-│   ├── kaggle_train.ipynb     # Kaggle training notebook
-│   └── memoria.pdf            # Full technical report (Spanish)
-│
-├── testing/
-│   └── ejercicios_clase/      # Computer vision exercises (filters, edge detection)
+│   │   └── dataset.yaml           # Configuración del dataset YOLO
+│   ├── colab_train.ipynb          # Cuaderno de entrenamiento en Google Colab
+│   ├── kaggle_train.ipynb         # Cuaderno de entrenamiento en Kaggle
+│   └── memoria.pdf                # Memoria técnica completa del proyecto
 │
 ├── requirements.txt
-├── install.bat                # Windows one-click installer
-└── install.sh                 # Linux/macOS one-click installer
+├── install.bat                    # Instalador automático para Windows
+└── install.sh                     # Instalador automático para Linux/macOS
 ```
 
 ---
 
-## Tech stack
+## Tecnologías utilizadas
 
-- **[Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics)** — instance segmentation
-- **[FastAPI](https://fastapi.tiangolo.com/)** — async REST backend
-- **[OpenCV](https://opencv.org/)** — image processing & measurement
-- **[Label Studio](https://labelstud.io/)** — annotation platform (polygons + pseudo-label review)
-- **[Albumentations](https://albumentations.ai/)** — training-time augmentation pipeline
-- **[Tailwind CSS](https://tailwindcss.com/)** — frontend styling
-
----
-
-## Technical report
-
-A full technical report (in Spanish) is included at `scratch_detector/memoria.pdf`, covering:
-- Filter progression: Canny/Sobel/Laplacian on coins → Sobel vs DoG on road → Blackhat+Otsu on ceramic tiles
-- Two-phase annotation strategy (bounding boxes → polygonal masks for scratches)
-- Semi-supervised pseudo-labeling pipeline (2 rounds, 2 132 accepted annotations)
-- Training history: CPU 14 h → Colab (interrupted) → Kaggle T4×2 (3.2 h, final)
-- Web application architecture and industrial use case
+- **[Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics)** — segmentación de instancias
+- **[FastAPI](https://fastapi.tiangolo.com/)** — backend REST asíncrono
+- **[OpenCV](https://opencv.org/)** — procesamiento de imagen y medición
+- **[Label Studio](https://labelstud.io/)** — plataforma de anotación (polígonos + revisión de pseudo-etiquetas)
+- **[Albumentations](https://albumentations.ai/)** — pipeline de aumento de datos en entrenamiento
+- **[Tailwind CSS](https://tailwindcss.com/)** — estilos del frontend
 
 ---
 
-## Author
+## Memoria técnica
+
+La memoria técnica completa del proyecto se incluye en `scratch_detector/memoria.pdf` y abarca:
+- Progresión de filtros: Canny/Sobel/Laplaciano sobre monedas → Sobel vs DoG sobre carretera → Blackhat+Otsu sobre baldosas cerámicas
+- Estrategia de anotación en dos fases (bounding boxes → máscaras poligonales para rayaduras)
+- Pipeline de pseudo-etiquetado semi-supervisado (2 rondas, 2 132 anotaciones aceptadas)
+- Historial de entrenamiento: CPU 14 h → Colab (interrumpido) → Kaggle T4×2 (3,2 h, definitivo)
+- Arquitectura de la aplicación web y caso de uso industrial
+
+---
+
+## Autor
 
 **Javier Barba Berrocal**  
-3rd year — *Ingeniería en la Industria Conectada*  
-Subject: *Sistemas de Percepción y Visión Artificial*
+3.º curso — *Grado en Ingeniería en la Industria Conectada*  
+Asignatura: *Sistemas de Percepción y Visión Artificial*
 
 ---
 
-## License
+## Licencia
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT — consulta el fichero [LICENSE](LICENSE) para más detalles.
