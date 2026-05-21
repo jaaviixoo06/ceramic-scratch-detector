@@ -13,7 +13,7 @@
 
 > **Vídeo explicativo completo** — carga de imagen, resultados anotados, exploración del panel interactivo y mediciones reales de defectos.
 
-https://github.com/jaaviixoo06/ceramic-scratch-detector/releases/download/v1.0/video_testing_web.mp4
+[![Ver demo en YouTube](https://i.ytimg.com/vi/BXc1dcMT2Ow/maxresdefault.jpg)](https://youtu.be/BXc1dcMT2Ow)
 
 ---
 
